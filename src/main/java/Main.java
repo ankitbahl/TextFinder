@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main {
@@ -13,44 +15,7 @@ public class Main {
     public static void main(String args[]) {
         init();
     }
-
-    private static void onLoad() {
-        while (true) {
-            try {
-                println("Enter number of terms: ");
-                int numberOfTerms;
-                try {
-                    numberOfTerms = consoleReadInt();
-                    if(numberOfTerms == 0) {
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                    println("Not a valid number");
-                    continue;
-                }
-                println("Enter in each term and press enter");
-                String[] words = new String[numberOfTerms];
-                for(int i = 0; i < numberOfTerms; i++) {
-                    String input = consoleRead();
-                    if(input.equals(EXIT_KEYWORD)) {
-                        return;
-                    }
-                    words[i] = input;
-                }
-
-                for (int i = 0; i < _textBook.length; i++) {
-                    String page = _textBook[i];
-                    if (page.toLowerCase().contains(input.toLowerCase())) {
-                        int pageFound = i + FIRST_PAGE;
-                        println(input + " found on page " + pageFound);
-                    }
-                }
-
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//
     private static void init() {
         println("Loading pdf into memory...");
         Thread thread = new Thread(new PdfLoader(new PdfLoader.Caller() {
@@ -85,7 +50,56 @@ public class Main {
 
     }
 
-    private static void print(String... s) {
+    private static void onLoad() {
+        while (true) {
+            try {
+                println("Enter number of terms: ");
+                int numberOfTerms;
+                try {
+                    numberOfTerms = consoleReadInt();
+                    if(numberOfTerms == 0) {
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    println("Not a valid number");
+                    continue;
+                }
+                println("Enter in each term and press enter");
+                String[] words = new String[numberOfTerms];
+                for(int i = 0; i < numberOfTerms; i++) {
+                    String input = consoleRead();
+                    if(input.equals(EXIT_KEYWORD)) {
+                        return;
+                    }
+                    words[i] = input;
+                }
+                findWords(words);
+
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void findWords(String[] words) {
+
+        WordTextLocation[] wordTextLocations = new WordTextLocation[words.length];
+        for(int i = 0; i < words.length; i++) {
+            String word = words[i];
+            List<TextLocation> textLocations = new ArrayList<TextLocation>();
+            for (int j = 0; j < _textBook.length; j++) {
+                String page = _textBook[j];
+                if (page.toLowerCase().contains(word.toLowerCase())) {
+                    textLocations.add(new TextLocation(i,page.toLowerCase().indexOf(word.toLowerCase())));
+                }
+            }
+            wordTextLocations[i] = new WordTextLocation(word, textLocations.toArray(new TextLocation[textLocations.size()]));
+        }
+
+    }
+
+
+    public static void print(String... s) {
         String base = "";
         for(String sk : s) {
             base += sk;
@@ -93,7 +107,7 @@ public class Main {
         System.out.printf(base);
     }
 
-    private static void println(String... s) {
+    public static void println(String... s) {
         String base = "";
         for(String sk : s) {
             base += sk;
@@ -117,6 +131,18 @@ public class Main {
 
     public static int[] getMaxPageChars() {
         return _maxPageChars;
+    }
+
+    private String[] removeFirst(String[] toRemove) {
+        if(toRemove == null || toRemove.length == 1) {
+            return null;
+        }
+        int newSize = toRemove.length-1;
+        String[] temp = new String[newSize];
+        for(int i = 0; i < newSize; i++ ) {
+            temp[i] = toRemove[i + 1];
+        }
+        return temp;
     }
 
 }
