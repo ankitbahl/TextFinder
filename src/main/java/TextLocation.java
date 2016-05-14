@@ -13,7 +13,28 @@ public class TextLocation {
         if(maxPageChars == null) {
             throw new RuntimeException("textbook not loaded");
         }
-        int first
+        int firstPageNum = _pageNumber;
+        int firstCharNum = _charNumber;
+        int secondPageNum = otherText.getPageNumber();
+        int secondCharNum = otherText.getCharNumber();
+        if(firstPageNum > secondPageNum) {
+            return getDistance(secondPageNum,firstPageNum,secondCharNum,firstCharNum,maxPageChars);
+        } else if(secondPageNum > firstPageNum) {
+            return getDistance(firstPageNum, secondPageNum, firstCharNum, secondCharNum,maxPageChars);
+        } else {
+            return Math.abs(firstCharNum-secondCharNum);
+        }
     }
+    private static int getDistance(int smallerPageNum, int biggerPageNum, int charForSmaller, int charForBigger, int[] maxPageChars) {
+        int distance = maxPageChars[smallerPageNum] - charForSmaller;
+        for(int i = smallerPageNum + 1; i< biggerPageNum; i++) {
+            distance += maxPageChars[i];
+        }
+        distance+= charForBigger;
+        return distance;
+    }
+
+    public int getPageNumber() {return _pageNumber;}
+    public int getCharNumber() {return _charNumber;}
 
 }
