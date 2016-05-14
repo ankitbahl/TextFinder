@@ -15,7 +15,7 @@ public class Main {
     public static void main(String args[]) {
         init();
     }
-//
+
     private static void init() {
         println("Loading pdf into memory...");
         Thread thread = new Thread(new PdfLoader(new PdfLoader.Caller() {
