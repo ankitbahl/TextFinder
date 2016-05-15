@@ -31,7 +31,7 @@ public class PdfLoader implements Runnable {
         for(int i = FIRST_PAGE; i < textBook.length + FIRST_PAGE;i++ ) {
             reader.setStartPage(i);
             reader.setEndPage(i);
-            String page = reader.getText(document);
+            String page = reader.getText(document).replaceAll("\r","").replaceAll("\n","").replaceAll("-","");
             textBook[i-FIRST_PAGE] = page;
             numChars[i-FIRST_PAGE] = page.length();
         }

@@ -1,4 +1,8 @@
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -14,6 +18,8 @@ public class Main {
     private static int[] _maxPageChars;
     public static void main(String args[]) {
         init();
+        //println(getPage(649).toLowerCase().replaceAll("\n","").replaceAll("\r","").contains(spacesInBetweenEachCharacter("jupiter")) + "");
+
     }
 
     private static void init() {
@@ -73,15 +79,17 @@ public class Main {
                     }
                     words[i] = input;
                 }
-                findWords(words);
 
+                //TODO allocate a thread for each word for efficiency
+                WordTextLocation[] wordTextLocations = findWords(words);
+                search(wordTextLocations);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private static void findWords(String[] words) {
+    private static WordTextLocation[] findWords(String[] words) {
 
         WordTextLocation[] wordTextLocations = new WordTextLocation[words.length];
         for(int i = 0; i < words.length; i++) {
@@ -89,15 +97,25 @@ public class Main {
             List<TextLocation> textLocations = new ArrayList<TextLocation>();
             for (int j = 0; j < _textBook.length; j++) {
                 String page = _textBook[j];
+
                 if (page.toLowerCase().contains(word.toLowerCase())) {
-                    textLocations.add(new TextLocation(i,page.toLowerCase().indexOf(word.toLowerCase())));
+                    List<Integer> occurrencesArray = getAllIndexOccurrencesOnPage(word.toLowerCase(),page.toLowerCase());
+                    for(int occurrenceIndex : occurrencesArray) {
+                        textLocations.add(new TextLocation(j,occurrenceIndex));
+                    }
+                }
+
+                if(page.toLowerCase().contains(spacesInBetweenEachCharacter(word.toLowerCase()))) {
+                    List<Integer> occurrencesArray = getAllIndexOccurrencesOnPage(spacesInBetweenEachCharacter(word.toLowerCase()),page.toLowerCase());
+                    for(int occurrenceIndex : occurrencesArray) {
+                        textLocations.add(new TextLocation(j,occurrenceIndex));
+                    }
                 }
             }
             wordTextLocations[i] = new WordTextLocation(word, textLocations.toArray(new TextLocation[textLocations.size()]));
         }
-
+        return wordTextLocations;
     }
-
 
     public static void print(String... s) {
         String base = "";
@@ -113,6 +131,11 @@ public class Main {
             base += sk;
         }
         System.out.printf(base + "\n");
+    }
+
+    public static void println(int i) {
+        System.out.print(i);
+        System.out.printf("\n");
     }
 
     private static String consoleRead() {
@@ -143,6 +166,57 @@ public class Main {
             temp[i] = toRemove[i + 1];
         }
         return temp;
+    }
+
+    /**
+     * assumes that it is page contains words
+     * @param word
+     * @param page
+     * @return
+     */
+    private static List<Integer> getAllIndexOccurrencesOnPage(String word, String page) {
+        return getAllIndexOccurrencesOnPageHelper(word,page,0);
+    }
+
+    private static List<Integer> getAllIndexOccurrencesOnPageHelper(String word, String page, int toAdd) {
+        List<Integer> allIndexes = new ArrayList<Integer>();
+        int index = page.indexOf(word);
+        allIndexes.add(index+toAdd);
+        String rest = page.substring(index + word.length());
+        if(rest.contains(word)) {
+            List<Integer> indexList = getAllIndexOccurrencesOnPageHelper(word,rest,toAdd + index + word.length());
+            allIndexes.addAll(indexList);
+        }
+        return allIndexes;
+    }
+
+    private static String getPage(int pageNum) {
+        try {
+            PDDocument document = PDDocument.load(new File(FILE_LOCATION));
+            PDFTextStripper reader = new PDFTextStripper();
+            reader.setStartPage(pageNum);
+            reader.setEndPage(pageNum);
+            return reader.getText(document);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String spacesInBetweenEachCharacter(String original) {
+        return original.replaceAll(".(?=.)", "$0 ");
+    }
+    private static void search(WordTextLocation[] wordTextLocations) {
+        TextLocation[] firstTextLocations = wordTextLocations[0].getLocations();
+        for(TextLocation textLocation : firstTextLocations) {
+            int locationPage = textLocation.getPageNumber();
+            for(int i = 1; i < wordTextLocations.length; i++) {
+                int resultArrayLength = wordTextLocations[i].getLocations().length;
+                for(int j = 0; j < resultArrayLength; j++) {
+
+                }
+            }
+        }
     }
 
 }
