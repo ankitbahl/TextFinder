@@ -79,15 +79,17 @@ public class Main {
                     }
                     words[i] = input;
                 }
-                findWords(words);
 
+                //TODO allocate a thread for each word for efficiency
+                WordTextLocation[] wordTextLocations = findWords(words);
+                search(wordTextLocations);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    private static void findWords(String[] words) {
+    private static WordTextLocation[] findWords(String[] words) {
 
         WordTextLocation[] wordTextLocations = new WordTextLocation[words.length];
         for(int i = 0; i < words.length; i++) {
@@ -95,9 +97,7 @@ public class Main {
             List<TextLocation> textLocations = new ArrayList<TextLocation>();
             for (int j = 0; j < _textBook.length; j++) {
                 String page = _textBook[j];
-                if(j == 624) {
-                    println("");
-                }
+
                 if (page.toLowerCase().contains(word.toLowerCase())) {
                     List<Integer> occurrencesArray = getAllIndexOccurrencesOnPage(word.toLowerCase(),page.toLowerCase());
                     for(int occurrenceIndex : occurrencesArray) {
@@ -114,11 +114,7 @@ public class Main {
             }
             wordTextLocations[i] = new WordTextLocation(word, textLocations.toArray(new TextLocation[textLocations.size()]));
         }
-
-        for(WordTextLocation wordTextLocation : wordTextLocations) {
-            println(wordTextLocation.getWord());
-            println(""+wordTextLocation.getLocations().length);
-        }
+        return wordTextLocations;
     }
 
     public static void print(String... s) {
@@ -209,6 +205,18 @@ public class Main {
 
     private static String spacesInBetweenEachCharacter(String original) {
         return original.replaceAll(".(?=.)", "$0 ");
+    }
+    private static void search(WordTextLocation[] wordTextLocations) {
+        TextLocation[] firstTextLocations = wordTextLocations[0].getLocations();
+        for(TextLocation textLocation : firstTextLocations) {
+            int locationPage = textLocation.getPageNumber();
+            for(int i = 1; i < wordTextLocations.length; i++) {
+                int resultArrayLength = wordTextLocations[i].getLocations().length;
+                for(int j = 0; j < resultArrayLength; j++) {
+
+                }
+            }
+        }
     }
 
 }

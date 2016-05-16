@@ -1,5 +1,5 @@
 /**
- * Created by Ankit on 2016-05-13.
+ * TODO use hashmap with page number as key in order to optimize searching ( fix search as well)
  */
 public class TextLocation {
     private final int _pageNumber;
