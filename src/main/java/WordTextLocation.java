@@ -1,13 +1,19 @@
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by Ankit on 2016-05-14.
  */
 public class WordTextLocation {
-    private String _word;
-    private TextLocation[] _locations;
-    public WordTextLocation(String word, TextLocation[] locations) {
+    private final String _word;
+    private final TextLocationMap _locations;
+    public WordTextLocation(String word) {
         _word = word;
-        _locations = locations;
+        _locations = new TextLocationMap();
     }
     public String getWord() {return _word;}
-    public TextLocation[] getLocations(){return _locations;}
+    public TextLocationMap getLocations(){return _locations;}
+    public void addEntry(TextLocation textLocation) {
+        _locations.addEntry(textLocation);
+    }
 }
