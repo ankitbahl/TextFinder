@@ -10,14 +10,14 @@ public class Results implements Comparable<Results> {
         _averageCharDistance = averageCharDistance;
     }
 
-    public Results(TextLocation index, TextLocation... locations) {
+    public Results(TextLocation indexLocation, TextLocation... allLocations) {
         int totalCharDistance = 0;
-        TextLocation firstTextLocation = locations[0];
-        for(int i = 1; i < locations.length; i++) {
-            totalCharDistance += (firstTextLocation.getCharDistance(locations[i]));
+        TextLocation firstTextLocation = allLocations[0];
+        for(int i = 1; i < allLocations.length; i++) {
+            totalCharDistance += (firstTextLocation.getCharDistance(allLocations[i]));
         }
-        double averageCharDistance = (double)totalCharDistance / (locations.length - 1);
-        _index = index;
+        double averageCharDistance = (double)totalCharDistance / (allLocations.length - 1);
+        _index = indexLocation;
         _averageCharDistance = averageCharDistance;
     }
 

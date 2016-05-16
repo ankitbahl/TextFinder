@@ -8,13 +8,18 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * to run from console: java -cp TextFinder.jar Main
+ */
 public class Main {
     private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
     private static final String EXIT_KEYWORD = "exit";
     public static final int FIRST_PAGE = 25;
     private static final int SEARCH_RADIUS = 1;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
+    private static AtomicInteger _loadProgressPercent = new AtomicInteger();
     private static String[] _textBook;
     private static int[] _maxPageChars;
     public static void main(String args[]) {
@@ -23,34 +28,43 @@ public class Main {
 
     private static void init() {
         println("Loading pdf into memory...");
-        Thread thread = new Thread(new PdfLoader((data1, data2) -> {
-            _isLoading.set(false);
-            _textBook = data1;
-            _maxPageChars = data2;
-        }, FILE_LOCATION));
+        Thread thread = new Thread(new PdfLoader(new PdfLoader.Caller() {
+            @Override
+            public void sendProgress(int percentProgress) {
+                if(_loadProgressPercent.get() != percentProgress) {
+                    _loadProgressPercent.set(percentProgress);
+                }
+            }
+
+            @Override
+            public void onComplete(String[] data1, int[] data2) {
+                _isLoading.set(false);
+                _textBook = data1;
+                _maxPageChars = data2;
+            }
+        },FILE_LOCATION));
         thread.start();
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        for(boolean b = false; _isLoading.get(); b = !b) {
-            if(b) {
-                println("..");
-            } else {
-                println(".");
-            }
+            print("0%%");
+        for(;_isLoading.get();) {
+            deleteCharsFromConsole(4);
+            print(_loadProgressPercent.get() + "%%");
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
+        deleteCharsFromConsole(4);
+        println("100%%");
         println("PDF Loaded");
         onLoad();
-
     }
 
     private static void onLoad() {
@@ -134,6 +148,18 @@ public class Main {
         System.out.printf("\n");
     }
 
+    public static void clearConsole() {
+        for(int i = 0; i < 25; i ++) {
+            System.out.printf("\n");
+        }
+    }
+
+    public static void deleteCharsFromConsole(int numChars) {
+        for(int i = 0; i < numChars; i++) {
+            System.out.printf("\b \b");
+        }
+    }
+
     private static String consoleRead() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
@@ -196,12 +222,28 @@ public class Main {
     }
 
     private static void search(List<WordTextLocation> wordTextLocations) {
-        WordTextLocation firstWordTextLocation = wordTextLocations.get(0);
-        List<Integer> firstPageList = firstWordTextLocation.getPageList();
-        List<WordTextLocation> wordTextLocationsWithoutFirst = removeFirst(wordTextLocations);
-        for(int page : firstPageList) {
+        WordTextLocation firstWord = wordTextLocations.get(0);
+        List<Integer> pageList = firstWord.getPageList();
+        List<WordTextLocation> otherWords = removeFirst(wordTextLocations);
+        List<Results> results = new ArrayList<>();
+        for(int pageNum : pageList) {
+
+            List<List<WordTextLocation>> allPossibleResults = new ArrayList<>(otherWords.size());
+            for(WordTextLocation otherWord : otherWords) {
+                List<WordTextLocation> possibleResultsForWord = new ArrayList<>(3);
+                for(int pageCheck = pageNum - SEARCH_RADIUS; pageCheck < pageNum + SEARCH_RADIUS + 1; pageCheck++ ) {
+                    if(otherWord.hasResultsOnPage(pageCheck)) {
+                        possibleResultsForWord.add(otherWord);
+                    }
+                }
+                allPossibleResults.add(possibleResultsForWord);
+            }
+            print("");
 
         }
+    }
+    private static void getBestResults(WordTextLocation firstWord, List<WordTextLocation> otherWords) {
+
     }
 
 }
