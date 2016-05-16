@@ -13,6 +13,7 @@ public class Main {
     private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
     private static final String EXIT_KEYWORD = "exit";
     public static final int FIRST_PAGE = 25;
+    private static final int SEARCH_RADIUS = 1;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
     private static String[] _textBook;
     private static int[] _maxPageChars;
@@ -77,7 +78,7 @@ public class Main {
                 }
 
                 //TODO allocate a thread for each word for efficiency
-                WordTextLocation[] wordTextLocations = findWords(words);
+                List<WordTextLocation> wordTextLocations = findWords(words);
                 search(wordTextLocations);
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -85,8 +86,8 @@ public class Main {
         }
     }
 
-    private static WordTextLocation[] findWords(String[] words) {
-        WordTextLocation[] wordTextLocations = new WordTextLocation[words.length];
+    private static List<WordTextLocation> findWords(String[] words) {
+        List<WordTextLocation> wordTextLocations = new ArrayList<>(words.length);
         for(int i = 0; i < words.length; i++) {
             String word = words[i];
             WordTextLocation wordTextLocation = new WordTextLocation(word);
@@ -107,7 +108,7 @@ public class Main {
                     }
                 }
             }
-            wordTextLocations[i] = wordTextLocation;
+            wordTextLocations.add(wordTextLocation);
         }
         return wordTextLocations;
     }
@@ -151,18 +152,6 @@ public class Main {
         return _maxPageChars;
     }
 
-    private String[] removeFirst(String[] toRemove) {
-        if(toRemove == null || toRemove.length == 1) {
-            return null;
-        }
-        int newSize = toRemove.length-1;
-        String[] temp = new String[newSize];
-        for(int i = 0; i < newSize; i++ ) {
-            temp[i] = toRemove[i + 1];
-        }
-        return temp;
-    }
-
     /**
      * assumes that it is page contains words
      * @param word
@@ -202,8 +191,17 @@ public class Main {
         return original.replaceAll(".(?=.)", "$0 ");
     }
 
-    private static void search(WordTextLocation[] wordTextLocations) {
-        //TODO
+    private static List<WordTextLocation> removeFirst(List<WordTextLocation> original) {
+        return original.subList(1, original.size());
+    }
+
+    private static void search(List<WordTextLocation> wordTextLocations) {
+        WordTextLocation firstWordTextLocation = wordTextLocations.get(0);
+        List<Integer> firstPageList = firstWordTextLocation.getPageList();
+        List<WordTextLocation> wordTextLocationsWithoutFirst = removeFirst(wordTextLocations);
+        for(int page : firstPageList) {
+
+        }
     }
 
 }
