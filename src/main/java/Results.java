@@ -1,30 +1,37 @@
+import java.util.List;
+
 /**
  * Created by cherryzard on 5/15/2016.
  */
 public class Results implements Comparable<Results> {
     private final TextLocation _index;
-    private final double _averageCharDistance;
+    private final double _standardDeviation;
 
-    public Results(TextLocation index, double averageCharDistance) {
+    public Results(TextLocation index, double standardDeviation) {
         _index = index;
-        _averageCharDistance = averageCharDistance;
+        _standardDeviation = standardDeviation;
     }
 
-    public Results(TextLocation index, TextLocation... locations) {
-        int totalCharDistance = 0;
-        TextLocation firstTextLocation = locations[0];
-        for(int i = 1; i < locations.length; i++) {
-            totalCharDistance += (firstTextLocation.getCharDistance(locations[i]));
+    public Results(TextLocation index, List<TextLocation> textLocations) {
+        double totalSum = 0;
+        for(TextLocation textLocation : textLocations) {
+            totalSum += textLocation.getAbsoluteLocation();
         }
-        double averageCharDistance = (double)totalCharDistance / (locations.length - 1);
+        int numTerms = textLocations.size();
+        double average = totalSum/numTerms;
+        double sumSquares = 0;
+        for(TextLocation textLocation : textLocations) {
+            sumSquares += Math.pow(textLocation.getAbsoluteLocation() - average,2);
+        }
+        double aveSquares = sumSquares / numTerms;
+        _standardDeviation = Math.sqrt(aveSquares);
         _index = index;
-        _averageCharDistance = averageCharDistance;
     }
 
     public int compareTo(Results other) {
-        return Double.valueOf(_averageCharDistance).compareTo(other._averageCharDistance);
+        return Double.valueOf(_standardDeviation).compareTo(other._standardDeviation);
     }
 
     public TextLocation getIndex() {return _index;}
-    public double getAverageCharDistance() {return _averageCharDistance;}
+    public double get_standardDeviation() {return _standardDeviation;}
 }

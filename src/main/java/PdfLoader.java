@@ -28,17 +28,21 @@ public class PdfLoader implements Runnable {
         PDFTextStripper reader = new PDFTextStripper();
         String[] textBook = new String[document.getNumberOfPages() - FIRST_PAGE + 1];
         int[] numChars = new int[document.getNumberOfPages() - FIRST_PAGE + 1];
-        for(int i = FIRST_PAGE; i < textBook.length + FIRST_PAGE;i++ ) {
+        int textBookLength = textBook.length;
+        for(int i = FIRST_PAGE; i < textBookLength + FIRST_PAGE;i++ ) {
             reader.setStartPage(i);
             reader.setEndPage(i);
             String page = reader.getText(document).replaceAll("\r","").replaceAll("\n","").replaceAll("-","");
             textBook[i-FIRST_PAGE] = page;
             numChars[i-FIRST_PAGE] = page.length();
+            int currentProgress = (i-FIRST_PAGE)*100/(textBookLength - 1);
+            _caller.sendProgress(currentProgress);
         }
         return new Data(textBook,numChars);
     }
 
     public interface Caller {
+        void sendProgress(int percentProgress);
         void onComplete(String[] data1, int[] data2);
     }
     private static class Data {
