@@ -8,12 +8,15 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
     private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
     private static final String EXIT_KEYWORD = "exit";
     public static final int FIRST_PAGE = 25;
+    private static final int SEARCH_RADIUS = 1;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
+    private static AtomicInteger _loadProgressPercent = new AtomicInteger();
     private static String[] _textBook;
     private static int[] _maxPageChars;
     public static void main(String args[]) {
@@ -22,11 +25,21 @@ public class Main {
 
     private static void init() {
         println("Loading pdf into memory...");
-        Thread thread = new Thread(new PdfLoader((data1, data2) -> {
-            _isLoading.set(false);
-            _textBook = data1;
-            _maxPageChars = data2;
-        }, FILE_LOCATION));
+        Thread thread = new Thread(new PdfLoader(new PdfLoader.Caller() {
+            @Override
+            public void sendProgress(int percentProgress) {
+                if(_loadProgressPercent.get() != percentProgress) {
+                    _loadProgressPercent.set(percentProgress);
+                }
+            }
+
+            @Override
+            public void onComplete(String[] data1, int[] data2) {
+                _isLoading.set(false);
+                _textBook = data1;
+                _maxPageChars = data2;
+            }
+        },FILE_LOCATION));
         thread.start();
 
         try {
@@ -35,21 +48,19 @@ public class Main {
             e.printStackTrace();
         }
 
-        for(boolean b = false; _isLoading.get(); b = !b) {
-            if(b) {
-                println("..");
-            } else {
-                println(".");
-            }
+        for(;_isLoading.get();) {
+            clearConsole();
+            println(_loadProgressPercent.get() + "%%");
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+        clearConsole();
+        println("100%%");
         println("PDF Loaded");
         onLoad();
-
     }
 
     private static void onLoad() {
@@ -77,7 +88,7 @@ public class Main {
                 }
 
                 //TODO allocate a thread for each word for efficiency
-                WordTextLocation[] wordTextLocations = findWords(words);
+                List<WordTextLocation> wordTextLocations = findWords(words);
                 search(wordTextLocations);
             } catch (RuntimeException e) {
                 e.printStackTrace();
@@ -85,8 +96,8 @@ public class Main {
         }
     }
 
-    private static WordTextLocation[] findWords(String[] words) {
-        WordTextLocation[] wordTextLocations = new WordTextLocation[words.length];
+    private static List<WordTextLocation> findWords(String[] words) {
+        List<WordTextLocation> wordTextLocations = new ArrayList<>(words.length);
         for(int i = 0; i < words.length; i++) {
             String word = words[i];
             WordTextLocation wordTextLocation = new WordTextLocation(word);
@@ -107,7 +118,7 @@ public class Main {
                     }
                 }
             }
-            wordTextLocations[i] = wordTextLocation;
+            wordTextLocations.add(wordTextLocation);
         }
         return wordTextLocations;
     }
@@ -133,6 +144,12 @@ public class Main {
         System.out.printf("\n");
     }
 
+    public static void clearConsole() {
+        for(int i = 0; i < 25; i ++) {
+            System.out.printf("\n");
+        }
+    }
+
     private static String consoleRead() {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
@@ -149,18 +166,6 @@ public class Main {
 
     public static int[] getMaxPageChars() {
         return _maxPageChars;
-    }
-
-    private String[] removeFirst(String[] toRemove) {
-        if(toRemove == null || toRemove.length == 1) {
-            return null;
-        }
-        int newSize = toRemove.length-1;
-        String[] temp = new String[newSize];
-        for(int i = 0; i < newSize; i++ ) {
-            temp[i] = toRemove[i + 1];
-        }
-        return temp;
     }
 
     /**
@@ -202,8 +207,17 @@ public class Main {
         return original.replaceAll(".(?=.)", "$0 ");
     }
 
-    private static void search(WordTextLocation[] wordTextLocations) {
-        //TODO
+    private static List<WordTextLocation> removeFirst(List<WordTextLocation> original) {
+        return original.subList(1, original.size());
+    }
+
+    private static void search(List<WordTextLocation> wordTextLocations) {
+        WordTextLocation firstWordTextLocation = wordTextLocations.get(0);
+        List<Integer> firstPageList = firstWordTextLocation.getPageList();
+        List<WordTextLocation> wordTextLocationsWithoutFirst = removeFirst(wordTextLocations);
+        for(int page : firstPageList) {
+
+        }
     }
 
 }
