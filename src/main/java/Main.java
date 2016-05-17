@@ -23,7 +23,8 @@ public class Main {
     private static String[] _textBook;
     private static int[] _maxPageChars;
     public static void main(String args[]) {
-        init();
+        //init();
+        print("" + standardDev(4,2,5,8,6));
     }
 
     private static void init() {
@@ -100,6 +101,8 @@ public class Main {
         }
     }
 
+
+    //TODO check for case that a word/phrase starts in one page and finishes in the next
     private static List<WordTextLocation> findWords(String[] words) {
         List<WordTextLocation> wordTextLocations = new ArrayList<>(words.length);
         for(int i = 0; i < words.length; i++) {
@@ -242,8 +245,23 @@ public class Main {
 
         }
     }
-    private static void getBestResults(WordTextLocation firstWord, List<WordTextLocation> otherWords) {
+    private static List<Integer> getTotalCharDistance(WordTextLocation firstWord, List<WordTextLocation> otherWords) {
+        return null;
+    }
 
+    public static double standardDev(double... nums) {
+        double totalSum = 0;
+        for(Double num : nums) {
+            totalSum += num;
+        }
+        int numTerms = nums.length;
+        double average = totalSum/numTerms;
+        double sumSquares = 0;
+        for(Double num : nums) {
+            sumSquares += Math.pow(num - average,2);
+        }
+        double aveSquares = sumSquares / numTerms;
+        return Math.sqrt(aveSquares);
     }
 
 }
