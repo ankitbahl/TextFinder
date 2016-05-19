@@ -26,10 +26,10 @@ public class PdfLoader implements Runnable {
 
     private static Data getAllPages(PDDocument document) throws IOException {
         PDFTextStripper reader = new PDFTextStripper();
-        String[] textBook = new String[document.getNumberOfPages() - FIRST_PAGE + 1];
+        String[] textBook = new String[document.getNumberOfPages() - FIRST_PAGE + 1 - 100];
         int[] numChars = new int[document.getNumberOfPages() - FIRST_PAGE + 1];
         int textBookLength = textBook.length;
-        for(int i = FIRST_PAGE; i < textBookLength + FIRST_PAGE;i++ ) {
+        for(int i = FIRST_PAGE; i < textBookLength + FIRST_PAGE ;i++ ) {
             reader.setStartPage(i);
             reader.setEndPage(i);
             String page = reader.getText(document).replaceAll("\r","").replaceAll("\n","").replaceAll("-","");

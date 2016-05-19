@@ -29,9 +29,9 @@ public class Results implements Comparable<Results> {
     }
 
     public int compareTo(Results other) {
-        return Double.valueOf(_standardDeviation).compareTo(other._standardDeviation);
+        return Double.valueOf(_standardDeviation).compareTo(other.getStandardDeviation());
     }
 
     public TextLocation getIndex() {return _index;}
-    public double get_standardDeviation() {return _standardDeviation;}
+    public double getStandardDeviation() {return _standardDeviation;}
 }
