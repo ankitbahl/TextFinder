@@ -94,13 +94,13 @@ public class Main {
 
                 //TODO allocate a thread for each word for efficiency
                 List<WordTextLocation> wordTextLocations = findWords(words);
-                List<Results> results = search(wordTextLocations);
+                List<Result> results = search(wordTextLocations);
                 if(results.isEmpty()) {
                     println("No results");
                 }
                 else {
                     for (int i = 0; i < results.size() && i < 5; i++) {
-                        Results result = results.get(i);
+                        Result result = results.get(i);
                         println("Result " + (i + 1) + ": location is " + (result.getIndex().getAbsoluteLocation() + 3));
                     }
                 }
@@ -233,11 +233,11 @@ public class Main {
         return original.subList(1, original.size());
     }
 
-    private static List<Results> search(List<WordTextLocation> wordTextLocations) {
+    private static List<Result> search(List<WordTextLocation> wordTextLocations) {
         WordTextLocation firstWord = wordTextLocations.get(0);
         List<Integer> pageList = firstWord.getPageList();
         List<WordTextLocation> otherWords = removeFirst(wordTextLocations);
-        List<Results> results = new ArrayList<>();
+        List<Result> results = new ArrayList<>();
         for(int pageNum : pageList) {
             List<List<WordOnePage>> allPossibleResults = new ArrayList<>(otherWords.size());
             for(WordTextLocation otherWord : otherWords) {
@@ -258,7 +258,7 @@ public class Main {
     }
 
     //TODO implement full(should be a recursive method)
-    private static List<Results> getAllTextLocations(WordOnePage firstWord, List<List<WordOnePage>> otherWords) {
+    private static List<Result> getAllTextLocations(WordOnePage firstWord, List<List<WordOnePage>> otherWords) {
         if(otherWords.size() > 2) {
             throw new RuntimeException("Only 2 words allowed");
         }
@@ -266,7 +266,7 @@ public class Main {
         else if(otherWords.size() == 1) {
             List<WordOnePage> secondWord = otherWords.get(0);
             List<TextLocation> firstWordTextLocations = firstWord.getIndexesOnPage();
-            List<Results> allResults = new ArrayList<>();
+            List<Result> allResults = new ArrayList<>();
             for(TextLocation firstWordTextLocation: firstWordTextLocations) {
                 for(WordOnePage secondWordPage : secondWord) {
                     List<TextLocation> secondWordTextLocations = secondWordPage.getIndexesOnPage();
@@ -274,7 +274,7 @@ public class Main {
                         List<TextLocation> twoWordsTextLocation = new ArrayList<>();
                         twoWordsTextLocation.add(firstWordTextLocation);
                         twoWordsTextLocation.add(secondWordTextLocation);
-                        allResults.add(new Results(firstWordTextLocation,twoWordsTextLocation));
+                        allResults.add(new Result(firstWordTextLocation,twoWordsTextLocation));
                     }
                 }
             }
@@ -285,19 +285,19 @@ public class Main {
             List<WordOnePage> secondWord = otherWords.get(0);
             List<WordOnePage> thirdWord = otherWords.get(1);
             List<TextLocation> firstWordTextLocations = firstWord.getIndexesOnPage();
-            List<Results> allResults = new ArrayList<>();
+            List<Result> allResults = new ArrayList<>();
             for(TextLocation firstWordTextLocation: firstWordTextLocations) {
                 for(WordOnePage secondWordPage : secondWord) {
                     List<TextLocation> secondWordTextLocations = secondWordPage.getIndexesOnPage();
                     for(TextLocation secondWordTextLocation : secondWordTextLocations) {
-                        for(WordOnePage thirdWordpage : thirdWord) {
-                            List<TextLocation> thirdWordTextLocations = thirdWordpage.getIndexesOnPage();
+                        for(WordOnePage thirdWordPage : thirdWord) {
+                            List<TextLocation> thirdWordTextLocations = thirdWordPage.getIndexesOnPage();
                             for(TextLocation thirdWordTextLocation : thirdWordTextLocations) {
                                 List<TextLocation> thirdWordsTextLocation = new ArrayList<>();
                                 thirdWordsTextLocation.add(firstWordTextLocation);
                                 thirdWordsTextLocation.add(secondWordTextLocation);
                                 thirdWordsTextLocation.add(thirdWordTextLocation);
-                                allResults.add(new Results(firstWordTextLocation,thirdWordsTextLocation));
+                                allResults.add(new Result(firstWordTextLocation,thirdWordsTextLocation));
                             }
                         }
                     }
@@ -310,37 +310,34 @@ public class Main {
         }
     }
 
-    private static List<List<TextLocation>> getAllTextLocationsRecursive(WordOnePage firstWord, List<List<WordOnePage>> otherWords) {
-
-        List<TextLocation> firstWordTextLocations = firstWord.getIndexesOnPage();
-        List<WordOnePage> secondWord = otherWords.get(0);
-        List<Results> allResults = new ArrayList<>();
-        for(TextLocation firstWordTextLocation: firstWordTextLocations) {
-            for(WordOnePage secondWordPage : secondWord) {
-                if(otherWords.size() > 1) {
-                    List<List<TextLocation>> allOtherTextLocations = getAllTextLocationsRecursive(secondWordPage, otherWords.subList(1, otherWords.size()));
-                }
-                else {
-
-                }
-
-                /*
-                List<TextLocation> secondWordTextLocations = secondWordPage.getIndexesOnPage();
-                for(TextLocation secondWordTextLocation : secondWordTextLocations) {
-                    for(WordOnePage thirdWordpage : thirdWord) {
-                        List<TextLocation> thirdWordTextLocations = thirdWordpage.getIndexesOnPage();
-                        for(TextLocation thirdWordTextLocation : thirdWordTextLocations) {
-                            List<TextLocation> thirdWordsTextLocation = new ArrayList<>();
-                            thirdWordsTextLocation.add(firstWordTextLocation);
-                            thirdWordsTextLocation.add(secondWordTextLocation);
-                            thirdWordsTextLocation.add(thirdWordTextLocation);
-                            allResults.add(new Results(firstWordTextLocation,thirdWordsTextLocation));
+    private static ResultList getAllTextLocationsRecursive(List<List<WordOnePage>> allWords) {
+        List<WordOnePage> firstWordPages = allWords.get(0);
+        if(allWords.size() == 2) {
+            ResultList results = new ResultList();
+            for(WordOnePage firstWordPage : firstWordPages) {
+                List<TextLocation> firstWordPageIndexes = firstWordPage.getIndexesOnPage();
+                List<WordOnePage> lastWordPages = allWords.get(1);
+                for(TextLocation firstWordIndex: firstWordPageIndexes) {
+                    for(WordOnePage lastWordPage : lastWordPages) {
+                        List<TextLocation> lastWordPageIndexes = lastWordPage.getIndexesOnPage();
+                        for(TextLocation lastWordIndex : lastWordPageIndexes) {
+                            Result result = new Result(firstWordIndex);
+                            result.addResultPart(lastWordIndex);
+                            results.addResult(result);
                         }
                     }
                 }
-                */
             }
+            return results;
+        } else {
+            ResultList results = getAllTextLocationsRecursive(allWords.subList(1,allWords.size()));
+            for(WordOnePage firstWord : firstWordPages) {
+                List<TextLocation> firstWordIndexes = firstWord.getIndexesOnPage();
+                for(TextLocation firstWordIndex : firstWordIndexes) {
+                    results.addEntryToAllResults(firstWordIndex); //TODO FIX LOGIC
+                }
+            }
+            return results;
         }
-        return allResults;
     }
 }
