@@ -1,9 +1,10 @@
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,22 +16,13 @@ public class Main {
     private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
     private static final String EXIT_KEYWORD = "exit";
     public static final int FIRST_PAGE = 25;
+    private static final int SEARCH_RADIUS = 1;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
     private static AtomicInteger _loadProgressPercent = new AtomicInteger();
     public static String[] _textBook;
     private static int[] _maxPageChars;
     public static void main(String args[]) {
-
-        //init();
-        List<Integer> list = new ArrayList<>();
-        list.add(1);
-        list.add(2);
-        list.add(3);
-        list.add(4);
-        list.remove(2);
-        for(int i = 0; i < list.size(); i++) {
-            println("" + list.get(i));
-        }
+        init();
     }
 
     private static void init() {
@@ -77,26 +69,20 @@ public class Main {
     private static void onLoad() {
         while (true) {
             try {
-                println("Enter number of terms: ");
-                int numberOfTerms;
+                println("Enter terms separated by spaces: ");
+                String input;
                 try {
-                    numberOfTerms = consoleReadInt();
-                    if(numberOfTerms == 0) {
-                        return;
-                    }
+                    input = consoleRead();
                 } catch (NumberFormatException e) {
                     println("Not a valid number");
                     continue;
                 }
-                println("Enter in each term and press enter");
-                String[] words = new String[numberOfTerms];
-                for(int i = 0; i < numberOfTerms; i++) {
-                    String input = consoleRead();
-                    if(input.equals(EXIT_KEYWORD)) {
-                        return;
-                    }
-                    words[i] = input;
+                if(input.equals(EXIT_KEYWORD)) {
+                    return;
                 }
+
+
+                String[] words  = input.split(" ");
 
                 //TODO allocate a thread for each word for efficiency
                 List<WordTextLocation> wordTextLocations = Search.findWords(words);
