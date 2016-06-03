@@ -16,7 +16,9 @@ public class Main {
     private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
     private static final String EXIT_KEYWORD = "exit";
     public static final int FIRST_PAGE = 25;
+    private static final int CONSOLE_SIZE = 200;
     private static final int SEARCH_RADIUS = 1;
+    private static final int CHARACTER_DISPLAY_RADIUS = 500;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
     private static AtomicInteger _loadProgressPercent = new AtomicInteger();
     public static String[] _textBook;
@@ -51,7 +53,8 @@ public class Main {
         }
             print("0%%");
         for(;_isLoading.get();) {
-            deleteCharsFromConsole(4);
+            //deleteCharsFromConsole(4);
+            print("\n");
             print(_loadProgressPercent.get() + "%%");
             try {
                 Thread.sleep(500);
@@ -60,7 +63,8 @@ public class Main {
             }
         }
 
-        deleteCharsFromConsole(4);
+        //deleteCharsFromConsole(4);
+        print("\n");
         println("100%%");
         println("PDF Loaded");
         onLoad();
@@ -84,6 +88,10 @@ public class Main {
 
                 String[] words  = input.split(" ");
 
+                if(words.length < 2) {
+                    println("More than one word required!");
+                }
+
                 //TODO allocate a thread for each word for efficiency
                 List<WordTextLocation> wordTextLocations = Search.findWords(words);
                 List<Result> results = Search.search(wordTextLocations);
@@ -93,13 +101,56 @@ public class Main {
                 else {
                     for (int i = 0; i < results.size() && i < 5; i++) {
                         Result result = results.get(i);
-                        println("Result " + (i + 1) + ": location is " + (result.getIndex().getAbsoluteLocation() + 3));
+                        TextLocation resultIndex = result.getIndex();
+                        print("\nResult " + (i + 1) + ": location is " + (resultIndex.getAbsoluteLocation() + 3));
+                        println(" with std " + result.getStandardDeviation());
+                        printNearbyText(resultIndex);
+                        print("\n");
                     }
+                    print("\n\n");
                 }
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public static void printNearbyText(TextLocation index) {
+        int charNumber = index.getCharNumber();
+        int pageNumber = index.getPageNumber();
+        int maxPageChar = _maxPageChars[pageNumber];
+        String toFormat;
+        String page = _textBook[pageNumber];
+        if(charNumber > CHARACTER_DISPLAY_RADIUS && charNumber + CHARACTER_DISPLAY_RADIUS < maxPageChar) {
+            toFormat = page.substring(charNumber - CHARACTER_DISPLAY_RADIUS,charNumber + CHARACTER_DISPLAY_RADIUS);
+            charNumber = CHARACTER_DISPLAY_RADIUS;
+        } else if(charNumber < CHARACTER_DISPLAY_RADIUS) {
+            if(maxPageChar <= 2*CHARACTER_DISPLAY_RADIUS ) {
+                toFormat = page;
+            }
+            else {
+                toFormat = page.substring(0, 2 * CHARACTER_DISPLAY_RADIUS);
+            }
+        } else {
+            if(maxPageChar <= 2*CHARACTER_DISPLAY_RADIUS) {
+                toFormat = page;
+            }
+            else {
+                toFormat = page.substring(maxPageChar - 2 * CHARACTER_DISPLAY_RADIUS);
+            }
+            charNumber = charNumber - maxPageChar + CHARACTER_DISPLAY_RADIUS*2;
+        }
+        println(insertCharactersEveryFewLines("\n",toFormat,CONSOLE_SIZE,charNumber));
+
+    }
+
+    public static String insertCharactersEveryFewLines(String character, String original, int numChars,int wordIndex) {
+        StringBuilder stringBuilder = new StringBuilder(original);
+        stringBuilder.insert(wordIndex,"--->");
+        for(int i = numChars; i < original.length(); i += numChars) {
+            stringBuilder.insert(i,character);
+        }
+        return stringBuilder.toString();
     }
 
     public static void print(String... s) {

@@ -7,6 +7,7 @@ import java.util.List;
  */
 public class ResultList {
     private final List<Result> _resultList;
+    private static final double DISREGARD_DISTANCE = 0.5;
     public ResultList() {
         _resultList = new ArrayList<>();
     }
@@ -32,7 +33,6 @@ public class ResultList {
 
     public static ResultList mergeAll(List<ResultList> allResultLists) {
         if(allResultLists == null || allResultLists.size() == 0) {
-            //throw new RuntimeException("No elements found to merge");
             return null;
         }
         ResultList toReturn = new ResultList();
@@ -50,12 +50,13 @@ public class ResultList {
             return;
         }
         TextLocation val = _resultList.get(0).getIndex();
-        for(int i = 1; i < _resultList.size(); i++) {
+        for(int i = 1; i < _resultList.size();) {
 
-            if(_resultList.get(i).getIndex().getAbsoluteDistance(val) < 0.2) {
+            if((_resultList.get(i).getIndex().getAbsoluteLocation() - val.getAbsoluteLocation()) < DISREGARD_DISTANCE) {
                 _resultList.remove(i);
             } else {
                 val = _resultList.get(i).getIndex();
+                i++;
             }
         }
     }

@@ -66,7 +66,8 @@ public class Search {
         firstWordList.add(firstWord);
         allWords.add(firstWordList);
         allWords.addAll(otherWords);
-        return getAllTextLocationsRecursive(allWords).getResultList();
+        ResultList resultList = getAllTextLocationsRecursive(allWords);
+        return resultList.getResultList();
     }
 
     private static ResultList getAllTextLocationsRecursive(List<List<WordOnePage>> allWords) {
