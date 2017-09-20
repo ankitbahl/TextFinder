@@ -13,11 +13,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * to run from console: java -cp TextFinder.jar Main
  */
 public class Main {
-    private static final String FILE_LOCATION = "C:/pdf/greekmyths2.pdf";
+    private static final String FILE_LOCATION = "C:\\Users\\Ankit\\Desktop\\pdf/course.pdf";
     private static final String EXIT_KEYWORD = "exit";
-    public static final int FIRST_PAGE = 25;
+    public static final int FIRST_PAGE = 1;
     private static final int CONSOLE_SIZE = 200;
-    private static final int SEARCH_RADIUS = 1;
     private static final int CHARACTER_DISPLAY_RADIUS = 500;
     private static AtomicBoolean _isLoading = new AtomicBoolean(true);
     private static AtomicInteger _loadProgressPercent = new AtomicInteger();
@@ -51,7 +50,7 @@ public class Main {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-            print("0%%");
+        print("0%%");
         for(;_isLoading.get();) {
             //deleteCharsFromConsole(4);
             print("\n");
@@ -74,17 +73,10 @@ public class Main {
         while (true) {
             try {
                 println("Enter terms separated by spaces: ");
-                String input;
-                try {
-                    input = consoleRead();
-                } catch (NumberFormatException e) {
-                    println("Not a valid number");
-                    continue;
-                }
+                String input = consoleRead();
                 if(input.equals(EXIT_KEYWORD)) {
                     return;
                 }
-
 
                 String[] words  = input.split(" ");
 
@@ -102,7 +94,7 @@ public class Main {
                     for (int i = 0; i < results.size() && i < 5; i++) {
                         Result result = results.get(i);
                         TextLocation resultIndex = result.getIndex();
-                        print("\nResult " + (i + 1) + ": location is " + (resultIndex.getAbsoluteLocation() + 3));
+                        print("\nResult " + (i + 1) + ": location is " + (resultIndex.getAbsoluteLocation() + 1));
                         println(" with std " + result.getStandardDeviation());
                         printNearbyText(resultIndex);
                         print("\n");

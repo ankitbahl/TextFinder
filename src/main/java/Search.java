@@ -2,32 +2,28 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by Ankit on 2016-05-21.
- */
-public class Search {
+class Search {
     private static final int SEARCH_RADIUS = 1;
 
     //TODO check for case that a word/phrase starts in one page and finishes in the next
-    public static List<WordTextLocation> findWords(String[] words) {
+    static List<WordTextLocation> findWords(String[] words) {
         List<WordTextLocation> wordTextLocations = new ArrayList<>(words.length);
-        for(int i = 0; i < words.length; i++) {
-            String word = words[i];
+        for (String word : words) {
             WordTextLocation wordTextLocation = new WordTextLocation(word);
             for (int j = 0; j < Main._textBook.length; j++) {
                 String page = Main._textBook[j];
 
                 if (page.toLowerCase().contains(word.toLowerCase())) {
-                    List<Integer> occurrencesArray = Utils.getAllIndexOccurrencesInString(word.toLowerCase(),page.toLowerCase());
-                    for(int occurrenceIndex : occurrencesArray) {
-                        wordTextLocation.addEntry(new TextLocation(j,occurrenceIndex));
+                    List<Integer> occurrencesArray = Utils.getAllIndexOccurrencesInString(word.toLowerCase(), page.toLowerCase());
+                    for (int occurrenceIndex : occurrencesArray) {
+                        wordTextLocation.addEntry(new TextLocation(j, occurrenceIndex));
                     }
                 }
 
-                if(page.toLowerCase().contains(Utils.addSpacesInBetweenEachCharacter(word.toLowerCase()))) {
-                    List<Integer> occurrencesArray = Utils.getAllIndexOccurrencesInString(Utils.addSpacesInBetweenEachCharacter(word.toLowerCase()),page.toLowerCase());
-                    for(int occurrenceIndex : occurrencesArray) {
-                        wordTextLocation.addEntry(new TextLocation(j,occurrenceIndex));
+                if (page.toLowerCase().contains(Utils.addSpacesInBetweenEachCharacter(word.toLowerCase()))) {
+                    List<Integer> occurrencesArray = Utils.getAllIndexOccurrencesInString(Utils.addSpacesInBetweenEachCharacter(word.toLowerCase()), page.toLowerCase());
+                    for (int occurrenceIndex : occurrencesArray) {
+                        wordTextLocation.addEntry(new TextLocation(j, occurrenceIndex));
                     }
                 }
             }
@@ -36,7 +32,7 @@ public class Search {
         return wordTextLocations;
     }
 
-    public static List<Result> search(List<WordTextLocation> wordTextLocations) {
+    static List<Result> search(List<WordTextLocation> wordTextLocations) {
         WordTextLocation firstWord = wordTextLocations.get(0);
         List<Integer> pageList = firstWord.getPageList();
         List<WordTextLocation> otherWords = Utils.removeFirstElement(wordTextLocations);
