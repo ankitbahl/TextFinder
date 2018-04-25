@@ -1,211 +1,39 @@
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * to run from console: java -cp TextFinder.jar Main
  */
 public class Main {
-    private static final String FILE_LOCATION = "C:\\Users\\Ankit\\Desktop\\pdf/course.pdf";
-    private static final String EXIT_KEYWORD = "exit";
-    public static final int FIRST_PAGE = 1;
-    private static final int CONSOLE_SIZE = 200;
-    private static final int CHARACTER_DISPLAY_RADIUS = 500;
-    private static AtomicBoolean _isLoading = new AtomicBoolean(true);
-    private static AtomicInteger _loadProgressPercent = new AtomicInteger();
-    public static String[] _textBook;
-    private static int[] _maxPageChars;
+    public static String[] _input;
     public static void main(String args[]) {
-        init();
+        List<Result> results = onLoad(
+                new String[]{"The Atlantic Sun Conference Women’s Basketball Tournament is a postseason tournament that determines which team receives the conference's automatic bid into the NCAA Women's Division I Basketball Championship.",
+                "The tournament was first held in 1986 by the New South Women's Athletic Conference, a women-only Division I conference. Following the 1990–91 basketball season, the NSWAC was absorbed by the Trans America Athletic Conference, with the TAAC incorporating all NSWAC statistics and records as its own. The conference changed its name to Atlantic Sun Conference in 2002, and rebranded itself as the ASUN Conference in 2016 (though the legal name is still \"Atlantic Sun\").\n",
+                "For most of its history, the tournament was held at predetermined campus sites, a tradition which started with the inception of the women's tournament. From 2004-07, the tournament was played regularly at the Dothan Civic Center in Dothan, Alabama, though then-conference member Troy was the official host in 2004-05, and the city of Dothan was the host in 2006-07, after Troy had departed for the Sun Belt Conference. Starting in 2008, the tournament moved yet again, this time to Nashville, Tennessee, hosted by Lipscomb. In 2010, the tourney was moved to Macon, Georgia and was hosted by Mercer University through 2013. It then moved to Alico Arena on the campus of Florida Gulf Coast University near Fort Myers, Florida for two seasons. The 2016 tournament began a new era for the event, with all games being held at campus sites. Since then, all games have been hosted by the higher seed of the teams involved.\n"
+                },
+                new String[]{"200","tournament"}
+                );
+        for(Result r : results) {
+            System.out.println(r.getIndex().getAbsoluteLocation());
+            int charnum = r.getIndex().getCharNumber();
+            System.out.println(_input[r.getIndex().getPageNumber()].substring(charnum - 20, charnum + 20));
+        }
     }
 
-    private static void init() {
-        println("Loading pdf into memory...");
-        Thread thread = new Thread(new PdfLoader(new PdfLoader.Caller() {
-            @Override
-            public void sendProgress(int percentProgress) {
-                if(_loadProgressPercent.get() != percentProgress) {
-                    _loadProgressPercent.set(percentProgress);
-                }
-            }
-
-            @Override
-            public void onComplete(String[] data1, int[] data2) {
-                _isLoading.set(false);
-                _textBook = data1;
-                _maxPageChars = data2;
-            }
-        },FILE_LOCATION));
-        thread.start();
-
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        print("0%%");
-        for(;_isLoading.get();) {
-            //deleteCharsFromConsole(4);
-            print("\n");
-            print(_loadProgressPercent.get() + "%%");
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        //deleteCharsFromConsole(4);
-        print("\n");
-        println("100%%");
-        println("PDF Loaded");
-        onLoad();
-    }
-
-    private static void onLoad() {
+    private static List<Result> onLoad(String[] input, String[] searchTerms) {
         while (true) {
-            try {
-                println("Enter terms separated by spaces: ");
-                String input = consoleRead();
-                if(input.equals(EXIT_KEYWORD)) {
-                    return;
-                }
-
-                String[] words  = input.split(" ");
-
-                if(words.length < 2) {
-                    println("More than one word required!");
-                }
-
-                //TODO allocate a thread for each word for efficiency
-                List<WordTextLocation> wordTextLocations = Search.findWords(words);
-                List<Result> results = Search.search(wordTextLocations);
-                if(results.isEmpty()) {
-                    println("No results");
-                }
-                else {
-                    for (int i = 0; i < results.size() && i < 5; i++) {
-                        Result result = results.get(i);
-                        TextLocation resultIndex = result.getIndex();
-                        print("\nResult " + (i + 1) + ": location is " + (resultIndex.getAbsoluteLocation() + 1));
-                        println(" with std " + result.getStandardDeviation());
-                        printNearbyText(resultIndex);
-                        print("\n");
-                    }
-                    print("\n\n");
-                }
-            } catch (RuntimeException e) {
-                e.printStackTrace();
+            if(searchTerms.length < 2) {
+                return null;
             }
+            _input = input;
+            //TODO allocate a thread for each word for efficiency
+            List<WordTextLocation> wordTextLocations = Search.findWords(searchTerms);
+            List<Result> results = Search.search(wordTextLocations);
+            return results;
         }
     }
 
-    public static void printNearbyText(TextLocation index) {
-        int charNumber = index.getCharNumber();
-        int pageNumber = index.getPageNumber();
-        int maxPageChar = _maxPageChars[pageNumber];
-        String toFormat;
-        String page = _textBook[pageNumber];
-        if(charNumber > CHARACTER_DISPLAY_RADIUS && charNumber + CHARACTER_DISPLAY_RADIUS < maxPageChar) {
-            toFormat = page.substring(charNumber - CHARACTER_DISPLAY_RADIUS,charNumber + CHARACTER_DISPLAY_RADIUS);
-            charNumber = CHARACTER_DISPLAY_RADIUS;
-        } else if(charNumber < CHARACTER_DISPLAY_RADIUS) {
-            if(maxPageChar <= 2*CHARACTER_DISPLAY_RADIUS ) {
-                toFormat = page;
-            }
-            else {
-                toFormat = page.substring(0, 2 * CHARACTER_DISPLAY_RADIUS);
-            }
-        } else {
-            if(maxPageChar <= 2*CHARACTER_DISPLAY_RADIUS) {
-                toFormat = page;
-            }
-            else {
-                toFormat = page.substring(maxPageChar - 2 * CHARACTER_DISPLAY_RADIUS);
-            }
-            charNumber = charNumber - maxPageChar + CHARACTER_DISPLAY_RADIUS*2;
-        }
-        println(insertCharactersEveryFewLines("\n",toFormat,CONSOLE_SIZE,charNumber));
-
-    }
-
-    public static String insertCharactersEveryFewLines(String character, String original, int numChars,int wordIndex) {
-        StringBuilder stringBuilder = new StringBuilder(original);
-        stringBuilder.insert(wordIndex,"--->");
-        for(int i = numChars; i < original.length(); i += numChars) {
-            stringBuilder.insert(i,character);
-        }
-        return stringBuilder.toString();
-    }
-
-    public static void print(String... s) {
-        String base = "";
-        for(String sk : s) {
-            base += sk;
-        }
-        System.out.printf(base);
-    }
-
-    public static void println(String... s) {
-        String base = "";
-        for(String sk : s) {
-            base += sk;
-        }
-        System.out.printf(base + "\n");
-    }
-
-    public static void println(int i) {
-        System.out.print(i);
-        System.out.printf("\n");
-    }
-
-    public static void clearConsole() {
-        for(int i = 0; i < 25; i ++) {
-            System.out.printf("\n");
-        }
-    }
-
-    public static void deleteCharsFromConsole(int numChars) {
-        for(int i = 0; i < numChars; i++) {
-            System.out.printf("\b \b");
-        }
-    }
-
-    private static String consoleRead() {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        try {
-            return br.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
-    private static int consoleReadInt() throws NumberFormatException{
-        String stringInput = consoleRead();
-        return Integer.parseInt(stringInput);
-    }
-
-    public static int[] getMaxPageChars() {
-        return _maxPageChars;
-    }
-
-    private static String getPage(int pageNum) {
-        try {
-            PDDocument document = PDDocument.load(new File(FILE_LOCATION));
-            PDFTextStripper reader = new PDFTextStripper();
-            reader.setStartPage(pageNum);
-            reader.setEndPage(pageNum);
-            return reader.getText(document);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    static int getMaxPageChars(int pageNumber) {
+        return _input[pageNumber].length();
     }
 }

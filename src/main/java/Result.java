@@ -14,11 +14,6 @@ public class Result implements Comparable<Result> {
         _result.add(index);
     }
 
-    public Result(TextLocation index, List<TextLocation> textLocations) {
-        _index = index;
-        _result = textLocations;
-    }
-
     public int compareTo(Result other) {
         return Double.valueOf(getStandardDeviation()).compareTo(other.getStandardDeviation());
     }

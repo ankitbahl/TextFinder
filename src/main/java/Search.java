@@ -5,13 +5,12 @@ import java.util.List;
 class Search {
     private static final int SEARCH_RADIUS = 1;
 
-    //TODO check for case that a word/phrase starts in one page and finishes in the next
     static List<WordTextLocation> findWords(String[] words) {
         List<WordTextLocation> wordTextLocations = new ArrayList<>(words.length);
         for (String word : words) {
             WordTextLocation wordTextLocation = new WordTextLocation(word);
-            for (int j = 0; j < Main._textBook.length; j++) {
-                String page = Main._textBook[j];
+            for (int j = 0; j < Main._input.length; j++) {
+                String page = Main._input[j];
 
                 if (page.toLowerCase().contains(word.toLowerCase())) {
                     List<Integer> occurrencesArray = Utils.getAllIndexOccurrencesInString(word.toLowerCase(), page.toLowerCase());

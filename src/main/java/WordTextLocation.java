@@ -14,16 +14,7 @@ public class WordTextLocation {
         _textLocationList = new ArrayList<>();
     }
 
-    public WordTextLocation(String word, List<TextLocation> textLocationList) {
-        _word = word;
-        _textLocationList = textLocationList;
-        _textLocationMap = new TextLocationMap();
-        for(TextLocation textLocation : textLocationList) {
-            _textLocationMap.addEntry(textLocation);
-        }
-    }
     public String getWord() {return _word;}
-    public TextLocationMap getLocations(){return _textLocationMap;}
 
     public void addEntry(TextLocation textLocation) {
 
